@@ -308,6 +308,16 @@ NewsController.prototype = {
 
   clickPressList : function(title) {
     this._model.toggleSubscribedByTitle(title);
+
+    var requestData = {title: title};
+    requestData = JSON.stringify(requestData);
+    var xhr = new XMLHttpRequest();
+    xhr.addEventListener("load", function(res){
+      console.log(res.target.response);
+    });
+    xhr.open("POST", "news/subscribed");
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(requestData);
   },
 
   clickListTitle : function(title) {

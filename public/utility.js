@@ -1,4 +1,4 @@
-var newsURL = "data/newslist.json";
+var newsURL = "news";
 
 var ajax = {
   sending : function(url, func) {
