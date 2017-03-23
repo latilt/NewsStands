@@ -1,6 +1,17 @@
 var express = require('express')
 var app = express()
 var bodyParser = require('body-parser')
+var mysql = require('mysql')
+
+var connection = mysql.createConnection({
+  host : '192.168.56.101',
+  port : 3306,
+  user : 'latilt',
+  password : 'tjfrud7130',
+  database : 'newsdb'
+})
+
+connection.connect()
 
 app.listen('3000', function() {
   console.log("Start Server port 3000")
@@ -10,12 +21,30 @@ app.use(express.static('public'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 
+app.set('view engine', 'ejs')
+
 app.get('/', function(req, res) {
-  res.sendFile(__dirname + '/public/main.html')
+  //res.sendFile(__dirname + '/public/main.html')
+  // var pressList = "";
+  // news.forEach(function(e) {
+  //   pressList = pressList + "<li><img id='" + e.title + "' src='" + e.imgurl + "' style='border-color:" + ((e.subscribed) ? "red" : "black") + "'/></li>"
+  // });
+  res.render('main.ejs', {'list' : news})
+  //res.sendFile(__dirname + '/views/main.ejs')
 })
 
 app.get('/news', function(req, res) {
-  res.json(news)
+  var responseData = {}
+  var query = connection.query('SELECT TITLE, IMGURL, SUBSCRIBED, NEWS FROM PRESS P JOIN NEWSLIST L ON P.TITLE = L.PRESSTITLE', function(err, rows) {
+    if(err) throw err;
+    if(rows) {
+      console.log(rows)
+    } else {
+      console.log(rows)
+    }
+    res.json(rows)
+  })
+
 })
 
 app.post('/news/subscribed', function(req, res) {

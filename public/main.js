@@ -348,6 +348,9 @@ document.addEventListener("DOMContentLoaded", function() {
     var myView = new NewsView(myModel, {header : header, mainArea : mainArea, content : content, mainPress : mainPress, nav : nav});
     var myController = new NewsController(myModel, myView);
 
-    myView.init();
+    //myView.init();
   });
+  // var myModel = new NewsModel(json);
+  // var myView = new NewsView(myModel, {header : header, mainArea : mainArea, content : content, mainPress : mainPress, nav : nav});
+  // var myController = new NewsController(myModel, myView);
 });
