@@ -58,7 +58,12 @@ NewsModel.prototype = {
   },
 
   getDataByNumber : function(number) {
-    return this._datas[this._subscribedList[number].index];
+    if(this._subscribedList.length === 0) {
+      return null;
+    } else {
+      return this._datas[this._subscribedList[number].index];
+    }
+
   },
 
   getDataIndexByTitle : function(title) {
@@ -86,6 +91,18 @@ NewsModel.prototype = {
 
     targetObj.subscribed = (targetObj.subscribed) ? false : true;
     this.subscribedChanged.notify({title : title});
+
+    var subscribed = targetObj.subscribed;
+
+    var requestData = {title : title, subscribed : subscribed};
+    requestData = JSON.stringify(requestData);
+    var xhr = new XMLHttpRequest();
+    xhr.addEventListener("load", function(res){
+      console.log(res.target.response);
+    });
+    xhr.open("POST", "news/subscribed");
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(requestData);
   },
 
   setSubscribedList : function() {
@@ -95,8 +112,14 @@ NewsModel.prototype = {
         this._subscribedList.push({title : e.title, index : i});
       }
     }, this);
+  },
 
-    console.log(this._subscribedList);
+  getSubscribedByTitle : function(title) {
+    var targetObj = this._datas.find(function(e) {
+      return e.title === title;
+    });
+
+    return targetObj.subscribed;
   }
 }
 
@@ -204,7 +227,12 @@ NewsView.prototype = {
   changeNewsContent : function() {
     var currentPageNumber = this._model.getCurrentPageNumber();
     var newsObj = this._model.getDataByNumber(currentPageNumber);
-    var newContent = this.template.replace("{title}", newsObj.title).replace("{imgurl}", newsObj.imgurl).replace("{newsList}", "<li>" + newsObj.newslist.join("</li><li>") + "</li>");
+    var newContent;
+    if(newsObj) {
+      newContent = this.template.replace("{title}", newsObj.title).replace("{imgurl}", newsObj.imgurl).replace("{newsList}", "<li>" + newsObj.newslist.join("</li><li>") + "</li>");
+    } else {
+      newContent = "뉴스를 구독해 주세요";
+    }
 
     this._elements.content.innerHTML = newContent;
   },
@@ -285,22 +313,22 @@ NewsController.prototype = {
     this._view.toggleMainAreaDisplay();
     this._view.togglePaging();
     this._view.toggleButton();
-    this._view.changeMainPress();
+    //this._view.changeMainPress();
   },
 
   clickMyNewsButton : function() {
 
     this._view.toggleMainPressDisplay();
     this._view.toggleMainAreaDisplay("block");
-    this._view.togglePaging("block");
-    this._view.toggleButton("block");
-
 
     this._model.setSubscribedList();
+    this._model.setTotalPageNumber();
     this._view.changeNewsList();
 
 
-    this._model.setTotalPageNumber();
+    this._view.togglePaging("block");
+    this._view.toggleButton("block");
+
     this._view.changeTotalPageNumber();
     var targetPageNumber = 0;
     this._model.setCurrentPageNumber(targetPageNumber);
@@ -308,16 +336,6 @@ NewsController.prototype = {
 
   clickPressList : function(title) {
     this._model.toggleSubscribedByTitle(title);
-
-    var requestData = {title: title};
-    requestData = JSON.stringify(requestData);
-    var xhr = new XMLHttpRequest();
-    xhr.addEventListener("load", function(res){
-      console.log(res.target.response);
-    });
-    xhr.open("POST", "news/subscribed");
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.send(requestData);
   },
 
   clickListTitle : function(title) {
@@ -350,7 +368,4 @@ document.addEventListener("DOMContentLoaded", function() {
 
     //myView.init();
   });
-  // var myModel = new NewsModel(json);
-  // var myView = new NewsView(myModel, {header : header, mainArea : mainArea, content : content, mainPress : mainPress, nav : nav});
-  // var myController = new NewsController(myModel, myView);
 });
